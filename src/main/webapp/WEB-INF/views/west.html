@@ -1,0 +1,47 @@
+<<script type="text/javascript">
+<!--
+	左侧导航栏
+//-->
+var centerTabs;
+function showTabCandidate(title){
+	if(centerTabs == null){
+		centerTabs = $('#centerTabs');
+	}
+	//如果 tab 已经存在, 则选中这个 tab
+	if(centerTabs.tabs('exists', title)){
+		centerTabs.tabs('select', title);
+	}else{
+		//如果不存在, 则创建 tab 这个功能先不做
+	}
+}
+function showTabTraining(title){
+	if(centerTabs == null){
+		centerTabs = $('#centerTabs');
+	}
+	//如果 tab 已经存在, 则选中这个 tab
+	if(centerTabs.tabs('exists', title)){
+		centerTabs.tabs('select', title);
+	}else{
+		//如果不存在, 则创建 tab 这个功能先不做
+	}
+}
+function showTabExcel(title){
+	if(centerTabs == null){
+		centerTabs = $('#centerTabs');
+	}
+	//如果 tab 已经存在, 则选中这个 tab
+	if(centerTabs.tabs('exists', title)){
+		centerTabs.tabs('select', title);
+	}else{
+		//如果不存在, 则创建 tab 这个功能先不做
+	}
+}
+</script>
+<ul>
+	<li class="tree"><a href="#" class="easyui-linkbutton" iconCls="icon-search" onclick="showTabCandidate('学员列表')">学员列表</a></li>
+	<li class="tree"><a href="#" class="easyui-linkbutton" iconCls="icon-search" onclick="showTabTraining('培训项目列表')">培训项目列表</a></li>
+	<!-- 	<li class="tree">
+		<a href="#" class="easyui-linkbutton" iconCls="icon-search" onclick="showTabAll">关联列表</a>
+	</li> -->
+	<li class="tree"><a href="#" class="easyui-linkbutton" iconCls="icon-add" onclick="showTabExcel">Excel 导入</a></li>
+</ul>

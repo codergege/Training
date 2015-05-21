@@ -1,0 +1,45 @@
+<?xml version="1.0"?>
+<!DOCTYPE hibernate-mapping PUBLIC "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+"http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
+<!-- Generated 2015-5-20 16:47:41 by Hibernate Tools 3.4.0.CR1 -->
+<hibernate-mapping>
+    <class name="cn.codergege.training.domain.Candidate" table="CANDIDATE">
+        <id name="cid" type="java.lang.Integer">
+            <column name="CID" />
+            <generator class="native" />
+        </id>
+        <property name="name" type="java.lang.String">
+            <column name="NAME" />
+        </property>
+        <property name="gender" type="java.lang.String">
+            <column name="GENDER" />
+        </property>
+        <property name="unit" type="java.lang.String">
+            <column name="UNIT" />
+        </property>
+        <property name="post" type="java.lang.String">
+            <column name="POST" />
+        </property>
+        <property name="birthday" type="java.lang.String">
+            <column name="BIRTHDAY" />
+        </property>
+        <property name="degree" type="java.lang.String">
+            <column name="DEGREE" />
+        </property>
+        <property name="operatingTime" type="java.lang.String">
+            <column name="OPERATING_TIME" />
+        </property>
+        <property name="bzlx" type="java.lang.String">
+            <column name="BZ_LX" />
+        </property>
+        <property name="state" type="java.lang.String">
+            <column name="STATE" />
+        </property>
+        <set name="trainings" table="CANDIDATE_TRAINING" cascade="all" lazy="false">
+            <key>
+                <column name="CID" />
+            </key>
+            <many-to-many class="cn.codergege.training.domain.Training" column="TID"/>
+        </set>
+    </class>
+</hibernate-mapping>

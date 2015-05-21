@@ -1,0 +1,29 @@
+@CHARSET "UTF-8";
+ul,li{margin: 0; padding: 0; list-style: none }
+
+.tree { margin: 10px 0; }
+.tree a {width: 120px; text-align: left; }
+/*  edit dlg form start */
+#fm {
+	margin: 0;
+	padding: 10px 30px;
+}
+
+.ftitle {
+	font-size: 14px;
+	font-weight: bold;
+	color: #666;
+	padding: 5px 0;
+	margin-bottom: 10px;
+	border-bottom: 1px solid #ccc;
+}
+
+.fitem {
+	margin-bottom: 5px;
+}
+
+.fitem label {
+	display: inline-block;
+	width: 80px;
+}
+/*  edit dlg form end */

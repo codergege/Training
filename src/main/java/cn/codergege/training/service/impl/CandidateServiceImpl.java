@@ -7,16 +7,20 @@ import javax.annotation.Resource;
 import org.springframework.stereotype.Service;
 
 import cn.codergege.training.dao.CandidateDao;
+import cn.codergege.training.dao.TrainingDao;
 import cn.codergege.training.domain.Candidate;
+import cn.codergege.training.domain.Training;
 import cn.codergege.training.service.CandidateService;
 
 @Service("candidateService")
 public class CandidateServiceImpl implements CandidateService {
 	@Resource
 	CandidateDao candidateDao;
+	@Resource
+	TrainingDao trainingDao;
 	@Override
-	public List<Candidate> getByPage(Integer page, Integer rows, String sort, String order, Candidate candidate, Double credit1, Double credit2) {
-		return candidateDao.getByPage(page, rows, sort, order, candidate, credit1, credit2);
+	public List<Candidate> getByPage(Integer page, Integer rows, String sort, String order, Candidate candidate, Double credit1, Double credit2, Integer cid, Integer tid) {
+		return candidateDao.getByPage(page, rows, sort, order, candidate, credit1, credit2, cid, tid);
 	}
 	@Override
 	public Integer getTotal() {
@@ -40,6 +44,31 @@ public class CandidateServiceImpl implements CandidateService {
 	@Override
 	public void delete(String cids) {
 		candidateDao.delete(cids);
+	}
+	@Override
+	public void rel(Candidate candidate, Integer tid) {
+		Training training = trainingDao.getTraining(tid);
+		candidate.getTrainings().add(training);
+		candidateDao.update(candidate);
+	}
+	@Override
+	public Candidate getCandidate(String name) {
+		return candidateDao.getCandidate(name);
+	}
+	@Override
+	public void unrel(String cids, Integer tid) {
+		// 先取出这些
+		List<Candidate> candidates = candidateDao.getCandidates(cids);
+		//去掉 tid 的 training
+		for(Candidate c: candidates){
+			for(Training t: c.getTrainings()){
+				if(t.getTid() == tid){
+					c.getTrainings().remove(t);
+					candidateDao.update(c);
+				}
+			}
+		}
+		
 	}
 
 }

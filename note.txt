@@ -1,3 +1,7 @@
 20150520-1-add
 domain: Candidate, Training, hbm.xml files
 database: training 
+
+20150521-1-add
+module: training
+1. training list, pagination

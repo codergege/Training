@@ -19,8 +19,14 @@ public class CandidateDaoImpl implements CandidateDao {
 		return sessionFactory.getCurrentSession();
 	}
 	@Override
-	public List<Candidate> getByPage(Integer page, Integer rows, String sort, String order, Candidate candidate, Double credit1, Double credit2) {
+	public List<Candidate> getByPage(Integer page, Integer rows, String sort, String order, Candidate candidate, Double credit1, Double credit2, Integer cid, Integer tid) {
 		String hql = "from Candidate where 1=1 ";
+		if(tid != null){
+			hql = "from Candidate as c inner join fetch c.trainings as t where t.tid = " + tid; 
+		}
+		if(cid != null){
+			hql += " and cid = " + cid;
+		}
 		if(candidate.getName() != null){
 			hql += " and name like '%" + candidate.getName() + "%'";
 		}
@@ -39,6 +45,9 @@ public class CandidateDaoImpl implements CandidateDao {
 		
 		if(sort != null && order != null){
 			hql += "order by " + sort + " " + order;
+		}
+		if(page == null){
+			return getSession().createQuery(hql).list();
 		}
 		List<Candidate> candidates = getSession().createQuery(hql).setFirstResult((page-1)*rows).setMaxResults(rows).list();
 		return candidates;
@@ -72,5 +81,16 @@ public class CandidateDaoImpl implements CandidateDao {
 	public void delete(String cids) {
 		String hql = "delete from Candidate where cid in (" + cids + ")";
 		getSession().createQuery(hql).executeUpdate();
+	}
+	@Override
+	public Candidate getCandidate(String name) {
+		System.out.println(name.trim());
+		String hql = "from Candidate where name like ?";
+		return (Candidate) getSession().createQuery(hql).setString(0, name.trim()).uniqueResult();
+	}
+	@Override
+	public List<Candidate> getCandidates(String cids) {
+		String hql = "from Candidate where cid in (" + cids + ")";
+		return getSession().createQuery(hql).list();
 	}
 }

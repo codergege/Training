@@ -14,10 +14,72 @@
 <link href="${pageContext.request.contextPath }/css/codergege.css" rel="stylesheet" type="text/css" />
 
 <script type="text/javascript">
-	var dgCandidate;
 	var centerTabs;
+	var dgCandidate;
+	var dgTraining;
 	$(function() {
 		centerTabs = $('#centerTabs');
+		initTabCandidate();
+		initTabTraining();
+	});
+	function initTabTraining(){
+		dgTraining = $('#dgTraining').datagrid({
+			url: getRootPath + "/training-list",
+			fit: true,
+			fitColumns: true,
+			autoRowHeight: true,
+			striped: true,
+			nowrap: false,
+			pagination: true,
+			checkOnSelect: true,
+			columns: [[{
+				field: 'tid',
+				checkbox: true
+			},{
+				field: 'name',
+				title: '培训班次名称',
+				width: 100,
+				sortable: true
+			},{
+				field: 'content',
+				title: '培训内容',
+				width: 200
+			},{
+				field: 'level',
+				title: '培训级别',
+				width: 80,
+				sortable: true
+			},{
+				field: 'trainingTime',
+				title: '培训时间',
+				width: 150
+			},{
+				field: 'location',
+				title: '培训地点',
+				width: 100 
+			},{
+				field: 'creditHour',
+				title: '培训学时',
+				width: 40,
+				sortable: true
+			},{
+				field: 'trainingLx',
+				title: '培训类型',
+				width: 60,
+				sortable: false
+			},{
+				field: 'trainingOrg',
+				title: '培训机构',
+				width: 60
+			},{
+				field: 'credit',
+				title: '学分',
+				width: 20
+			}]],
+			toolbar: "#tbTraining"
+		});
+	}
+	function initTabCandidate(){
 		dgCandidate = $('#dgCandidate').datagrid({
 			url : getRootPath() + "/candidate-list",
 			fit : true,
@@ -95,10 +157,8 @@
 			} ] ],
 			toolbar : '#tbCandidate'
 		});
-
-		// candidates datagrid end
-
-	});
+	}
+	
 	/* ------------- tree nav part start -------------------------------*/
 	function showTabCandidate(title) {
 		if (centerTabs == null) {
@@ -219,6 +279,116 @@
 		});
 	}
 	/* candidate crud end */
+	/* training crud start */
+	function searchTraining() {
+		var form = $('#searchFormTraining').form();
+		console.log(serializeObject(form));
+		dgTraining.datagrid('load', serializeObject(form));
+	}
+	function resetTraining() {
+		var form = $('#searchFormTraining').form();
+		dgTraining.datagrid('load', {});
+		form.find('input').val('');
+		//$('#gender').prop('selectedIndex', 0);
+		//$('#stat').prop('selectedIndex', 0);
+	}
+	function addTraining() {
+		$('#dlgCuTraining').dialog('open').dialog('setTitle', '新增培训项目');
+		$('#editFormTraining').form('clear');
+		url = getRootPath() + '/training-add';
+	}
+	function deleteTraining() {
+		var rows = $('#dgTraining').datagrid('getSelections');
+		if (rows.length == 0) {
+			alert("删除操作时, 至少要选择一行! ");
+			return false;
+		}
+		var tids = "";
+		for (var i = 0; i < rows.length; i++) {
+			tids += rows[i].tid;
+			if (i < (rows.length - 1)) {
+				tids += ", ";
+			} else {
+				break;
+			}
+		}
+		$.messager.confirm('Confirm', '确定要删除选中的数据吗?', function(r) {
+			if (r) {
+				$.ajax({
+					type : "POST",
+					url : getRootPath() + "/training-delete",
+					data : {
+						tids : tids
+					},
+					dataType : 'json',
+					success : function(msg) {
+						if (msg && msg.success == "true") {
+							dgTraining.datagrid('reload');
+							$.messager.show({
+								title : "提示",
+								msg : msg.message
+							});
+						} else {
+							$.messager.alert('Warning', msg.message);
+						}
+					}
+				});
+			}
+		});
+	}
+	function editTraining() {
+		var row = $('#dgTraining').datagrid('getSelected');
+		console.log(row);
+		if (row) {
+			$('#dlgCuTraining').dialog('open').dialog('setTitle', '编辑培训项目信息');
+			$('#editFormTraining').form('load', row);
+			url = getRootPath() + '/training-update';
+		}
+	}
+	function saveTraining() {
+		$('#editFormTraining').form('submit', {
+			url : url,
+			onSubmit : function() {
+				return $(this).form('validate');
+			},
+			success : function(result) {
+				console.log(url);
+				console.log(result);
+				var result = $.parseJSON(result);
+				if (result.success == null || result.success == "false") {
+					$.messager.show({
+						title : 'Error',
+						msg : result.message
+					});
+				} else {
+					$('#dlgCuTraining').dialog('close'); // close the dialog
+					dgTraining.datagrid('reload'); // reload the user data
+					$.messager.show({
+						title : '提示',
+						msg : result.message
+					});
+				}
+			}
+		});
+	}
+	
+	function relTrainingCandidate(){
+		var row = $('#dgTraining').datagrid('getSelected');	
+		if(row == null){
+			alert("请选择要关联的项目");
+		}else{
+			window.open(getRootPath() + "/training-candidate?tid=" + row.tid);
+		}
+	}
+	function relCandidateTraining(){
+		var row = $('#dgCandidate').datagrid('getSelected');	
+		if(row == null){
+			alert("请选择要关联的学员");
+		}else{
+			window.open(getRootPath() + "/candidate-training?cid=" + row.cid);
+		}
+	}
+	/* training crud end */
 </script>
 </head>
 <body class="easyui-layout">
@@ -247,7 +417,6 @@
 	<!-- *************************** candidate part *******************************  -->
 	<!-- candidates toolbar start  -->
 	<div id="tbCandidate">
-
 		<div>
 			<form id="searchFormCandidate">
 				姓名: <input id="candidateName" name="name" style="width: 80px; line-height: 20px; border: 1px solid #ccc" /> 
@@ -263,17 +432,20 @@
 				<input id="credit1" name="credit1" style="width: 40px; line-height: 20px; border: 1px solid #ccc" />
 				--
 				<input id="credit2" name="credit2" style="width: 40px; line-height: 20px; border: 1px solid #ccc" />
-				<a href="#" class="easyui-linkbutton" iconCls="icon-search" onclick="searchCandidate()">Search</a> 
-				<a href="#" class="easyui-linkbutton" iconCls="icon-reload" onclick="resetCandidate()">清空重置</a>
 			</form>
 		</div>
 		<div>
-			<a href="#" class="easyui-linkbutton" data-options="iconCls:'icon-add',plain:true" onclick="addCandidate()">增加</a> <a href="#" class="easyui-linkbutton" data-options="iconCls:'icon-remove',plain:true" onclick="deleteCandidate()">删除</a> <a href="#" class="easyui-linkbutton" data-options="iconCls:'icon-edit',plain:true" onclick="editCandidate()">修改</a>
+			<a href="#" class="easyui-linkbutton" data-options="iconCls:'icon-search',plain:true" onclick="searchCandidate()" >Search</a> 
+			<a href="#" class="easyui-linkbutton" data-options="iconCls:'icon-reload',plain:true" onclick="resetCandidate()">清空重置</a>
+			<a href="#" class="easyui-linkbutton" data-options="iconCls:'icon-add',plain:true" onclick="addCandidate()"style="margin-left: 20px;">增加</a> 
+			<a href="#" class="easyui-linkbutton" data-options="iconCls:'icon-edit',plain:true" onclick="editCandidate()">修改</a>
+			<a href="#" class="easyui-linkbutton" data-options="iconCls:'icon-edit',plain:true" onclick="relCandidateTraining()">关联</a>
+			<a href="#" class="easyui-linkbutton" data-options="iconCls:'icon-remove',plain:true" onclick="deleteCandidate()" style="float: right;">删除</a> 
 		</div>
 	</div>
 	<!-- candidate toolbar end -->
 	<!-- candidate crud dlg start -->
-	<div id="dlgCuCandidate" class="easyui-dialog" style="width: 400px; height: 480px; padding: 10px 20px" closed="true" buttons="#dlgBtnsCandidate">
+	<div id="dlgCuCandidate" class="easyui-dialog" style="width: 400px; height: 500px; padding: 10px 20px" closed="true" buttons="#dlgBtnsCandidate">
 		<div class="ftitle">学员信息</div>
 		<form id="editFormCandidate" method="post">
 			<input type="hidden" name="cid" />
@@ -315,5 +487,71 @@
 	<!-- candidate crud dlg end -->
 	<!-- *************************** candidate part end *******************************  -->
 
+<!-- *************************** training part start *******************************  -->
+	<!-- training toolbar start  -->
+	<div id="tbTraining">
+		<div>
+			<form id="searchFormTraining">
+				培训班次名称: <input  name="name" style="width: 80px; line-height: 20px; border: 1px solid #ccc" /> 
+				培训地点: <input  name="location" style="width: 80px; line-height: 20px; border: 1px solid #ccc" /> 
+				培训学时: <input  name="creditHour" style="width: 40px; line-height: 20px; border: 1px solid #ccc" /> 
+				培训类型: <input  name="trainingLx" style="width: 80px; line-height: 20px; border: 1px solid #ccc" /> 
+				培训机构: <input  name="trainingOrg" style="width: 100px; line-height: 20px; border: 1px solid #ccc" /> 
+				培训内容: <input  name="centent" style="width: 120px; line-height: 20px; border: 1px solid #ccc" /> 
+				学分范围(包含):  
+				<input id="credit1" name="credit1" style="width: 40px; line-height: 20px; border: 1px solid #ccc" />
+				--
+				<input id="credit2" name="credit2" style="width: 40px; line-height: 20px; border: 1px solid #ccc" />
+				&nbsp;&nbsp;&nbsp;&nbsp;
+			</form>
+		</div>
+		<div>
+			<a href="#" class="easyui-linkbutton" iconCls="icon-search" plain="true" onclick="searchTraining()" >Search</a> 
+			<a href="#" class="easyui-linkbutton" iconCls="icon-reload" plain="true" onclick="resetTraining()">清空重置</a>
+			<a href="#" class="easyui-linkbutton" data-options="iconCls:'icon-add',plain:true" onclick="addTraining()" style="margin-left: 20px;">增加</a> 
+			<a href="#" class="easyui-linkbutton" data-options="iconCls:'icon-edit',plain:true" onclick="editTraining()">修改</a>
+			<a href="#" class="easyui-linkbutton" data-options="iconCls:'icon-edit',plain:true" onclick="relTrainingCandidate()">关联</a>
+			<a href="#" class="easyui-linkbutton" data-options="iconCls:'icon-remove',plain:true" onclick="deleteTraining()" style="float: right">删除</a> 
+		</div>
+	</div>
+	<!-- training toolbar end -->
+	<!-- training crud dlg start -->
+	<div id="dlgCuTraining" class="easyui-dialog" style="width: 400px; height: 500px; padding: 10px 20px" closed="true" buttons="#dlgBtnsTraining">
+		<div class="ftitle">培训项目信息</div>
+		<form id="editFormTraining" method="post">
+			<input type="hidden" name="tid" />
+			<div class="fitem">
+				<label>培训班次名称:</label> <input name="name" class="easyui-validatebox" required="true">
+			</div>
+			<div class="fitem">
+				<label>培训内容:</label> <input name="content" class="easyui-validatebox" />
+			</div>
+			<div class="fitem">
+				<label>培训级别:</label> <input name="level" class="easyui-validatebox" />
+			</div>
+			<div class="fitem">
+				<label>培训时间:</label> <input name="trainingTime" class="easyui-validatebox" />
+			</div>
+			<div class="fitem">
+				<label>培训地点:</label> <input name="location" class="easyui-validatebox" />
+			</div>
+			<div class="fitem">
+				<label>培训学时:</label> <input name="creditHour" class="easyui-validatebox" required="true"/>
+			</div>
+			<div class="fitem">
+				<label>培训类型:</label> <input name="trainingLx" class="easyui-validatebox" />
+			</div>
+			<div class="fitem">
+				<label>培训机构:</label> <input name="trainingOrg" class="easyui-validatebox" />
+			</div>
+			<div class="fitem">
+				<label>学分:</label> <input name="credit" class="easyui-validatebox" required="true"/>
+			</div>
+		</form>
+	</div>
+	<div id="dlgBtnsTraining">
+		<a href="#" class="easyui-linkbutton" iconCls="icon-ok" onclick="saveTraining()">Save</a> <a href="#" class="easyui-linkbutton" iconCls="icon-cancel" onclick="javascript:$('#dlgCuTraining').dialog('close')">Cancel</a>
+	</div>
+	<!-- training crud dlg end -->
 </body>
 </html>

@@ -45,6 +45,39 @@
 			<result name="delete" type="json">
 				<param name="root">dataMap</param>
 			</result>
+			<result name="rel" type="json">
+				<param name="root">dataMap</param>
+			</result>
+			<result name="unrel" type="json">
+				<param name="root">dataMap</param>
+			</result>
+		</action>
+		
+		<action name="training-*" class="trainingAction" method="{1}">
+			<result name="list" type="json">
+				<param name="root">resultObj</param>
+			</result>
+			<result name="add" type="json">
+				<param name="root">dataMap</param>
+			</result>
+			<result name="update" type="json">
+				<param name="root">dataMap</param>
+			</result>
+			<result name="delete" type="json">
+				<param name="root">dataMap</param>
+			</result>
+			
+		</action>
+	
+		<action name="training-candidate">
+			<result>
+				/WEB-INF/views/training-candidate.jsp
+			</result>
+		</action>
+		<action name="candidate-training">
+			<result>
+				/WEB-INF/views/candidate-training.jsp
+			</result>
 		</action>
 	</package>
 

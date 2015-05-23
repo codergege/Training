@@ -51,6 +51,9 @@ public class CandidateAction extends ActionSupport implements ModelDriven<Candid
 	private Double credit2;
 	private String cids;
 	private Integer cid;
+	private Integer tid;
+	private String message;
+	private String success;
 	
 	//delete
 		public void prepareDelete(){
@@ -90,6 +93,46 @@ public class CandidateAction extends ActionSupport implements ModelDriven<Candid
 			dataMap.put("success", success);
 			dataMap.put("message", message);
 			return "update";
+		}
+		//rel
+		public void prepareRel(){
+			candidate = candidateService.getCandidate(name);
+			dataMap = new HashMap<String, Object>();
+			System.out.println("tid=" + tid);
+		}
+		public String rel(){
+			try {
+				message = "关联学员 [" + candidate.getName() + "] 成功！";
+				success = "true";
+				candidateService.rel(candidate, tid);
+			} catch (Exception e) {
+				if(candidate == null){
+					message = "不存在姓名为 [" + name + "] 的学员";
+				} else {
+					message = "关联学员 [" + candidate.getName() + "] 失败, 出错信息: " + e.getMessage();
+				}
+				success = "false";
+			}
+			dataMap.put("message", message);
+			dataMap.put("success", success);
+			return "rel";
+		}
+		//unrel
+		public void prepareUnrel(){
+			dataMap = new HashMap<String, Object>();
+		}
+		public String unrel(){
+			try {
+				candidateService.unrel(cids, tid);
+				message = "取消关联成功！";
+				success = "true";
+			} catch (Exception e) {
+				message = "取下关联失败, 出错信息:" + e.getMessage();
+				success = "false";
+			}
+			dataMap.put("message", message);
+			dataMap.put("success", success);
+			return "unrel";
 		}
 		//add
 		public void prepareAdd(){
@@ -145,7 +188,7 @@ public class CandidateAction extends ActionSupport implements ModelDriven<Candid
 	 */
 	public String list(){
 	
-		List<Candidate> candidates = candidateService.getByPage(page, rows, sort, order, candidate, credit1, credit2);
+		List<Candidate> candidates = candidateService.getByPage(page, rows, sort, order, candidate, credit1, credit2, cid, tid);
 		for(Candidate c: candidates){
 			// 判断 credit
 			
@@ -306,6 +349,12 @@ public class CandidateAction extends ActionSupport implements ModelDriven<Candid
 	}
 	public void setDataMap(Map<String, Object> dataMap) {
 		this.dataMap = dataMap;
+	}
+	public Integer getTid() {
+		return tid;
+	}
+	public void setTid(Integer tid) {
+		this.tid = tid;
 	}
 
 }

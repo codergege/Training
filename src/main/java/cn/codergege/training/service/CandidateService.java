@@ -14,4 +14,5 @@ public interface CandidateService {
 	void delete(String cids);
 	void rel(Candidate candidate, Integer tid);
 	void unrel(String cids, Integer tid);
+	List<Candidate> getAll();
 }

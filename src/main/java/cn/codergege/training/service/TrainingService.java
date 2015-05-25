@@ -18,4 +18,6 @@ public interface TrainingService {
 
 	void delete(String tids);
 
+	List<Training> getAll();
+
 }

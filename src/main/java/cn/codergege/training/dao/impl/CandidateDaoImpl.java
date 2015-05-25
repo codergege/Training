@@ -93,4 +93,9 @@ public class CandidateDaoImpl implements CandidateDao {
 		String hql = "from Candidate where cid in (" + cids + ")";
 		return getSession().createQuery(hql).list();
 	}
+	@Override
+	public List<Candidate> getAll() {
+		String hql = "from Candidate";
+		return getSession().createQuery(hql).list();
+	}
 }

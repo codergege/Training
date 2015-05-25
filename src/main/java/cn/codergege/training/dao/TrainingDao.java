@@ -11,4 +11,5 @@ public interface TrainingDao {
 	Training getTraining(Integer tid);
 	void update(Training training);
 	void delete(String tids);
+	List<Training> getAll();
 }

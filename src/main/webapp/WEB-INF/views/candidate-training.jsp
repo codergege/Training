@@ -1,4 +1,5 @@
 <%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
+<%@ taglib prefix="s" uri="/struts-tags" %>
 <!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
 <html>
 <head>
@@ -162,9 +163,6 @@
 		});
 	}
 	
-	function excelExport(){
-		alert("excel export!");
-	}
 </script>
 </head>
 <body class="easyui-layout">
@@ -181,7 +179,17 @@
 	<!-- candidates toolbar start  -->
 	<div id="tbTraining">
 		<div>
-			<a href="#" class="easyui-linkbutton" data-options="iconCls:'icon-remove',plain:true" onclick="excelExport()" >excel 导出</a> 
+			|导出 学员-培训 关联信息 |
+			<s:a action="candidate-relExport" >
+				<s:param name="format">xls</s:param> 
+				<s:param name="cid"><s:property value="#parameters.cid[0]"/></s:param> 
+				xls格式(适用excel 2003 及之前版本)
+			</s:a>|
+			<s:a action="candidate-relExport" >
+				<s:param name="format">xlsx</s:param> 
+				<s:param name="cid"><s:property value="#parameters.cid[0]"/></s:param> 
+				xlsx格式(适用excel 2007 及之后版本)
+			</s:a>|
 		</div>
 	</div>
 	<!-- candidate toolbar end -->

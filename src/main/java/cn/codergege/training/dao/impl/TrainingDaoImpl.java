@@ -85,4 +85,9 @@ public class TrainingDaoImpl implements TrainingDao {
 		String hql = "delete from Training where tid in (" + tids + ")";
 		getSession().createQuery(hql).executeUpdate();
 	}
+	@Override
+	public List<Training> getAll() {
+		String hql = "from Training";
+		return getSession().createQuery(hql).list();
+	}
 }

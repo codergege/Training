@@ -1,6 +1,13 @@
 package cn.codergege.training.action;
 
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.UnsupportedEncodingException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -9,6 +16,11 @@ import javax.annotation.Resource;
 
 import net.sf.json.JSONObject;
 
+import org.apache.poi.hssf.usermodel.HSSFWorkbook;
+import org.apache.poi.ss.usermodel.Row;
+import org.apache.poi.ss.usermodel.Sheet;
+import org.apache.poi.ss.usermodel.Workbook;
+import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Controller;
 
@@ -54,7 +66,158 @@ public class CandidateAction extends ActionSupport implements ModelDriven<Candid
 	private Integer tid;
 	private String message;
 	private String success;
+	//excel part
+	private String format;
+	private String downloadFileName;
+	private InputStream excelFile;
 	
+	//export excel candidate rel info
+		public String relExport(){
+			Workbook workbook = null;
+			if("xls".equals(format)){
+				workbook = new HSSFWorkbook();
+			}
+			if("xlsx".equals(format)){
+				workbook = new XSSFWorkbook();
+			}
+			candidate = candidateService.getCandidate(cid);
+			//创建 sheet
+			Sheet sheet = workbook.createSheet("学员信息");
+			//创建 row
+			Row row = sheet.createRow(0);
+			//创建 cell
+			row.createCell(0).setCellValue("姓名");
+			row.createCell(1).setCellValue("性别");	
+			row.createCell(2).setCellValue("单位");
+			row.createCell(3).setCellValue("职务");
+			row.createCell(4).setCellValue("出生年月");
+			row.createCell(5).setCellValue("最高学历");
+			row.createCell(6).setCellValue("参加工作时间");
+			row.createCell(7).setCellValue("编制类型");
+			row.createCell(8).setCellValue("状态");
+			row.createCell(9).setCellValue("学分累计");
+			Row r = sheet.createRow(1);
+			r.createCell(0).setCellValue(candidate.getName());
+			r.createCell(1).setCellValue(candidate.getGender());
+			r.createCell(2).setCellValue(candidate.getUnit());
+			r.createCell(3).setCellValue(candidate.getPost());
+			r.createCell(4).setCellValue(candidate.getBirthday());
+			r.createCell(5).setCellValue(candidate.getDegree());
+			r.createCell(6).setCellValue(candidate.getOperatingTime());
+			r.createCell(7).setCellValue(candidate.getBzlx());
+			r.createCell(8).setCellValue(candidate.getState());
+			double credit = 0;
+			for(Training t: candidate.getTrainings()){
+				credit += t.getCredit();
+			}
+			r.createCell(9).setCellValue(credit);
+			Row row2 = sheet.createRow(2);
+			//创建 cell
+			row2.createCell(0).setCellValue("培训项目班次名称");
+			row2.createCell(1).setCellValue("培训内容");	
+			row2.createCell(2).setCellValue("培训级别");
+			row2.createCell(3).setCellValue("培训时间");
+			row2.createCell(4).setCellValue("培训地点");
+			row2.createCell(5).setCellValue("培训学时");
+			row2.createCell(6).setCellValue("培训类型");
+			row2.createCell(7).setCellValue("培训机构");
+			row2.createCell(8).setCellValue("学分");
+			//set to list
+			List<Training> trainings = new ArrayList<Training>(candidate.getTrainings());
+			for(int i = 0; i < trainings.size(); i ++){
+				Training tt = trainings.get(i);
+				Row rr = sheet.createRow(i+3);
+				rr.createCell(0).setCellValue(tt.getName());
+				rr.createCell(1).setCellValue(tt.getContent());
+				rr.createCell(2).setCellValue(tt.getLevel());
+				rr.createCell(3).setCellValue(tt.getTrainingTime());
+				rr.createCell(4).setCellValue(tt.getLocation());
+				rr.createCell(5).setCellValue(tt.getCreditHour());
+				rr.createCell(6).setCellValue(tt.getTrainingLx());
+				rr.createCell(7).setCellValue(tt.getTrainingOrg());
+				rr.createCell(8).setCellValue(tt.getCredit());
+			}
+			ByteArrayOutputStream baos = new ByteArrayOutputStream();
+			try {
+				
+				workbook.write(baos);
+	 
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+			byte[] aa = baos.toByteArray();
+			excelFile = new ByteArrayInputStream(aa,0,aa.length); 
+			try {
+				baos.close();
+				workbook.close();
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+			return "relExportXls";
+		}
+	//export excel candidate info
+	public String export(){
+		Workbook workbook = null;
+		if("xls".equals(format)){
+			workbook = new HSSFWorkbook();
+		}
+		if("xlsx".equals(format)){
+			workbook = new XSSFWorkbook();
+		}
+		List<Candidate> candidates = candidateService.getAll();
+		//创建 sheet
+		Sheet sheet = workbook.createSheet("学员信息");
+		//创建 row
+		Row row = sheet.createRow(0);
+		//创建 cell
+		row.createCell(0).setCellValue("姓名");
+		row.createCell(1).setCellValue("性别");	
+		row.createCell(2).setCellValue("单位");
+		row.createCell(3).setCellValue("职务");
+		row.createCell(4).setCellValue("出生年月");
+		row.createCell(5).setCellValue("最高学历");
+		row.createCell(6).setCellValue("参加工作时间");
+		row.createCell(7).setCellValue("编制类型");
+		row.createCell(8).setCellValue("状态");
+		row.createCell(9).setCellValue("学分累计");
+		
+		for(int i = 0; i < candidates.size(); i ++){
+			Candidate c = candidates.get(i);
+			Row r = sheet.createRow(i+1);
+			r.createCell(0).setCellValue(c.getName());
+			r.createCell(1).setCellValue(c.getGender());
+			r.createCell(2).setCellValue(c.getUnit());
+			r.createCell(3).setCellValue(c.getPost());
+			r.createCell(4).setCellValue(c.getBirthday());
+			r.createCell(5).setCellValue(c.getDegree());
+			r.createCell(6).setCellValue(c.getOperatingTime());
+			r.createCell(7).setCellValue(c.getBzlx());
+			r.createCell(8).setCellValue(c.getState());
+			double credit = 0;
+			for(Training t: c.getTrainings()){
+				credit += t.getCredit();
+			}
+			r.createCell(9).setCellValue(credit);
+		}
+		ByteArrayOutputStream baos = new ByteArrayOutputStream();
+		try {
+			workbook.write(baos);
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+		byte[] aa = baos.toByteArray();
+		excelFile = new ByteArrayInputStream(aa,0,aa.length); 
+		try {
+			baos.close();
+			workbook.close();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		return "exportXls";
+	}
+
 	//delete
 		public void prepareDelete(){
 			System.out.println(cids);
@@ -355,6 +518,41 @@ public class CandidateAction extends ActionSupport implements ModelDriven<Candid
 	}
 	public void setTid(Integer tid) {
 		this.tid = tid;
+	}
+	public String getFormat() {
+		return format;
+	}
+	public void setFormat(String format) {
+		this.format = format;
+		SimpleDateFormat sdf = new SimpleDateFormat("yyyyMMddhhmmss");
+		String tmp = sdf.format(new Date());
+		String tmp2 = "学员信息";
+		if(cid != null){
+			tmp2 = "学员-培训-关联信息";
+		}
+		if(format.equals("xls")){
+			this.downloadFileName = tmp2 + tmp + ".xls";
+		}
+		if(format.equals("xlsx")){
+			this.downloadFileName = tmp2 + tmp + ".xlsx";
+		}
+		try {
+			this.downloadFileName=new String(this.downloadFileName.getBytes("utf-8"), "iso8859-1");
+		} catch (UnsupportedEncodingException e) {
+			e.printStackTrace();
+		}
+	}
+	public String getDownloadFileName() {
+		return downloadFileName;
+	}
+	public void setDownloadFileName(String downloadFileName) {
+		this.downloadFileName = downloadFileName;
+	}
+	public InputStream getExcelFile() {
+		return excelFile;
+	}
+	public void setExcelFile(InputStream excelFile) {
+		this.excelFile = excelFile;
 	}
 
 }

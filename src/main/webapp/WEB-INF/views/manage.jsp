@@ -1,4 +1,5 @@
 <%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
+<%@ taglib prefix="s" uri="/struts-tags" %>
 <!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
 <html>
 <head>
@@ -169,14 +170,6 @@
 		}
 	}
 	function showTabTraining(title) {
-		if (centerTabs == null) {
-			centerTabs = $('#centerTabs');
-		}
-		if (centerTabs.tabs('exists', title)) {
-			centerTabs.tabs('select', title);
-		}
-	}
-	function showTabExcel(title) {
 		if (centerTabs == null) {
 			centerTabs = $('#centerTabs');
 		}
@@ -389,6 +382,8 @@
 		}
 	}
 	/* training crud end */
+	/* excel part */
+	
 </script>
 </head>
 <body class="easyui-layout">
@@ -398,7 +393,6 @@
 			<span></span>
 			<li class="tree"><span><a href="#" class="easyui-linkbutton" iconCls="icon-search" onclick="showTabCandidate('学员列表')">学员列表</a></li>
 			<li class="tree"><span><a href="#" class="easyui-linkbutton" iconCls="icon-search" onclick="showTabTraining('培训项目列表')">培训项目列表</a></li>
-			<li class="tree"><span><a href="#" class="easyui-linkbutton" iconCls="icon-add" onclick="showTabExcel('excel 导入')">excel 导入</a></li>
 		</ul>
 	</div>
 	<div data-options="region:'center'">
@@ -408,8 +402,6 @@
 			</div>
 			<div title="培训项目列表" closable="false">
 				<table id="dgTraining"></table>
-			</div>
-			<div title="excel 导入" closable="false">
 			</div>
 		</div>
 	</div>
@@ -440,6 +432,16 @@
 			<a href="#" class="easyui-linkbutton" data-options="iconCls:'icon-add',plain:true" onclick="addCandidate()"style="margin-left: 20px;">增加</a> 
 			<a href="#" class="easyui-linkbutton" data-options="iconCls:'icon-edit',plain:true" onclick="editCandidate()">修改</a>
 			<a href="#" class="easyui-linkbutton" data-options="iconCls:'icon-edit',plain:true" onclick="relCandidateTraining()">关联</a>
+			|导出学员信息 |
+			<s:a action="candidate-export" >
+				<s:param name="format">xls</s:param> 
+				xls格式(适用excel 2003 及之前版本)
+			</s:a>|
+			<s:a action="candidate-export" >
+				<s:param name="format">xlsx</s:param> 
+				xlsx格式(适用excel 2007 及之后版本)
+			</s:a>|
+			<a href="#" class="easyui-linkbutton" data-options="iconCls:'icon-delete',plain:true" onclick="excelInput()">学员导入</a>
 			<a href="#" class="easyui-linkbutton" data-options="iconCls:'icon-remove',plain:true" onclick="deleteCandidate()" style="float: right;">删除</a> 
 		</div>
 	</div>
@@ -511,6 +513,15 @@
 			<a href="#" class="easyui-linkbutton" data-options="iconCls:'icon-add',plain:true" onclick="addTraining()" style="margin-left: 20px;">增加</a> 
 			<a href="#" class="easyui-linkbutton" data-options="iconCls:'icon-edit',plain:true" onclick="editTraining()">修改</a>
 			<a href="#" class="easyui-linkbutton" data-options="iconCls:'icon-edit',plain:true" onclick="relTrainingCandidate()">关联</a>
+			|导出学员信息 |
+			<s:a action="training-export" >
+				<s:param name="format">xls</s:param> 
+				xls格式(适用excel 2003 及之前版本)
+			</s:a>|
+			<s:a action="training-export" >
+				<s:param name="format">xlsx</s:param> 
+				xlsx格式(适用excel 2007 及之后版本)
+			</s:a>|
 			<a href="#" class="easyui-linkbutton" data-options="iconCls:'icon-remove',plain:true" onclick="deleteTraining()" style="float: right">删除</a> 
 		</div>
 	</div>

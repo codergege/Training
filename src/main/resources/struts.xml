@@ -51,6 +51,18 @@
 			<result name="unrel" type="json">
 				<param name="root">dataMap</param>
 			</result>
+			 <result name="exportXls" type="stream">
+                <param name="contentType">application/vnd.ms-excel</param>
+                <param name="contentDisposition">attachment;filename=${downloadFileName}</param>
+                <param name="bufferSize">1024</param>
+                <param name="inputName">excelFile</param>
+            </result>  
+			 <result name="relExportXls" type="stream">
+                <param name="contentType">application/vnd.ms-excel</param>
+                <param name="contentDisposition">attachment;filename=${downloadFileName}</param>
+                <param name="bufferSize">1024</param>
+                <param name="inputName">excelFile</param>
+            </result>  
 		</action>
 		
 		<action name="training-*" class="trainingAction" method="{1}">
@@ -66,7 +78,18 @@
 			<result name="delete" type="json">
 				<param name="root">dataMap</param>
 			</result>
-			
+			<result name="exportXls" type="stream">
+                <param name="contentType">application/vnd.ms-excel</param>
+                <param name="contentDisposition">attachment;filename=${downloadFileName}</param>
+                <param name="bufferSize">1024</param>
+                <param name="inputName">excelFile</param>
+            </result>  
+             <result name="relExportXls" type="stream">
+                <param name="contentType">application/vnd.ms-excel</param>
+                <param name="contentDisposition">attachment;filename=${downloadFileName}</param>
+                <param name="bufferSize">1024</param>
+                <param name="inputName">excelFile</param>
+            </result>  
 		</action>
 	
 		<action name="training-candidate">

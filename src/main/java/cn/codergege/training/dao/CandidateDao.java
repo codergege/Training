@@ -13,4 +13,5 @@ public interface CandidateDao {
 	void update(Candidate candidate);
 	void delete(String cids);
 	List<Candidate> getCandidates(String cids);
+	List<Candidate> getAll();
 }

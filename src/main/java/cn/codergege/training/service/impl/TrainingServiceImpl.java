@@ -44,4 +44,9 @@ public class TrainingServiceImpl implements TrainingService {
 		trainingDao.delete(tids);
 	}
 
+	@Override
+	public List<Training> getAll() {
+		return trainingDao.getAll();
+	}
+
 }

@@ -2,6 +2,9 @@ package cn.codergege.training.action;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.UnsupportedEncodingException;
@@ -21,6 +24,7 @@ import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.usermodel.Workbook;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
+import org.apache.struts2.interceptor.RequestAware;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Controller;
 
@@ -42,7 +46,7 @@ import com.opensymphony.xwork2.Preparable;
  */
 @Controller
 @Scope("prototype")
-public class CandidateAction extends ActionSupport implements ModelDriven<Candidate>, Preparable {
+public class CandidateAction extends ActionSupport implements ModelDriven<Candidate>, Preparable, RequestAware {
 
 	@Resource
 	private CandidateService candidateService;
@@ -70,7 +74,97 @@ public class CandidateAction extends ActionSupport implements ModelDriven<Candid
 	private String format;
 	private String downloadFileName;
 	private InputStream excelFile;
+	private File importExcelFile;
+	private String importExcelFileFileName;
+	private Map<String, Object> request;
 	
+	//import excel part
+	private Workbook createWorkbook(InputStream is) throws IOException{
+		if(importExcelFileFileName.toLowerCase().endsWith("xls")){
+			return new HSSFWorkbook(is);
+		}
+		if(importExcelFileFileName.toLowerCase().endsWith("xlsx")){
+			return new XSSFWorkbook(is);
+		}
+		return null;
+	}
+	public String importExcel(){
+		Integer totalCount = 0;
+		Integer successCount = 0;
+		Integer failCount = 0;
+		List<FailInfo> failInfos = new ArrayList<FailInfo>();
+		Workbook wb = null;
+		try {
+			wb = createWorkbook(new FileInputStream(importExcelFile));
+			Sheet sheet = wb.getSheetAt(0);
+			request.put("excelFileName", importExcelFileFileName);
+			request.put("excelSheetName", sheet.getSheetName());
+			totalCount = 0;
+			for(int i = 1; i <=sheet.getLastRowNum(); i ++){
+				Row row = sheet.getRow(i);
+				if(row == null ) break;
+				totalCount++;
+				Candidate c = new Candidate();
+				c.setName(row.getCell(0) == null ? "": row.getCell(0).getStringCellValue());
+				c.setGender(row.getCell(1) == null ? "": row.getCell(1).getStringCellValue());
+				c.setUnit(row.getCell(2) == null ? "": row.getCell(2).getStringCellValue());
+				c.setPost(row.getCell(3) == null ? "": row.getCell(3).getStringCellValue());
+				c.setBirthday(row.getCell(4) == null ? "": row.getCell(4).getStringCellValue());
+				c.setDegree(row.getCell(5) == null ? "": row.getCell(5).getStringCellValue());
+				c.setOperatingTime(row.getCell(6) == null ? "": row.getCell(6).getStringCellValue());
+				c.setBzlx(row.getCell(7) == null ? "": row.getCell(7).getStringCellValue());
+				c.setState(row.getCell(8) == null ? "": row.getCell(8).getStringCellValue());
+				FailInfo fi = null;
+				if(row.getCell(0) == null) {
+					fi = new FailInfo();
+					fi.setName("");
+					fi.setInfo("第 " + (i + 1) + " 行" + "excel 中姓名列存在空的单元格");
+				} else {
+					fi = insert2db(c, i);
+				}
+				// 如果 fi == null 则 successCount ++;
+				if(fi == null){
+					successCount ++;
+				} else {
+					failCount ++;
+					failInfos.add(fi);
+				}
+			}
+			request.put("totalCount", totalCount);
+			request.put("successCount", successCount);
+			request.put("failCount", failCount);
+			request.put("failInfos", failInfos);
+		} catch (FileNotFoundException e) {
+			e.printStackTrace();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+		return "importExcel";
+	}
+
+	private FailInfo insert2db(Candidate c, int i) {
+		FailInfo fi = null;
+		String rowinfo = "第 " + (i + 1) + " 行: ";
+		Candidate tmpc = candidateService.getCandidate(c.getName());
+		// 如果学员已经存在, 则直接返回 failInfo
+		if (tmpc != null) {
+			fi = new FailInfo();
+			fi.setName(c.getName());
+			fi.setInfo(rowinfo + "学员姓名已经存在");
+			return fi;
+		}
+		try {
+			//保存学员
+			candidateService.save(c);
+		} catch (Exception e) {
+			//如果出现异常, 返回 failInfo
+			fi = new FailInfo();
+			fi.setName(c.getName());
+			fi.setInfo(rowinfo + e.getMessage());
+			return fi;
+		}
+		return null;
+	}
 	//export excel candidate rel info
 		public String relExport(){
 			Workbook workbook = null;
@@ -553,6 +647,23 @@ public class CandidateAction extends ActionSupport implements ModelDriven<Candid
 	}
 	public void setExcelFile(InputStream excelFile) {
 		this.excelFile = excelFile;
+	}
+	public File getImportExcelFile() {
+		return importExcelFile;
+	}
+	public void setImportExcelFile(File importExcelFile) {
+		this.importExcelFile = importExcelFile;
+	}
+	
+	@Override
+	public void setRequest(Map<String, Object> request) {
+		this.request = request;
+	}
+	public String getImportExcelFileFileName() {
+		return importExcelFileFileName;
+	}
+	public void setImportExcelFileFileName(String importExcelFileFileName) {
+		this.importExcelFileFileName = importExcelFileFileName;
 	}
 
 }

@@ -12,4 +12,6 @@ public interface TrainingDao {
 	void update(Training training);
 	void delete(String tids);
 	List<Training> getAll();
+	Training getTraining(String name);
+	void rel(Training t);
 }

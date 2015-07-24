@@ -5,3 +5,6 @@ database: training
 20150521-1-add
 module: training
 1. training list, pagination
+
+学员, 培训 的学分排序功能
+培训关联导入 出错 无法导入新增学员

@@ -14,4 +14,7 @@ public interface CandidateDao {
 	void delete(String cids);
 	List<Candidate> getCandidates(String cids);
 	List<Candidate> getAll();
+	void merge(Candidate candidate);
+	void refresh(Candidate candidate);
+	void relUpdate(Candidate candidate);
 }

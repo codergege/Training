@@ -21,7 +21,6 @@
 			</interceptor-stack>
 		</interceptors>
 
-		
 		<!-- 使用新的拦截器栈 -->
 		<default-interceptor-ref name="sshStack"></default-interceptor-ref>
 

@@ -183,12 +183,12 @@
 			<s:a action="candidate-relExport" >
 				<s:param name="format">xls</s:param> 
 				<s:param name="cid"><s:property value="#parameters.cid[0]"/></s:param> 
-				xls格式(适用excel 2003 及之前版本)
+				xls格式
 			</s:a>|
 			<s:a action="candidate-relExport" >
 				<s:param name="format">xlsx</s:param> 
 				<s:param name="cid"><s:property value="#parameters.cid[0]"/></s:param> 
-				xlsx格式(适用excel 2007 及之后版本)
+				xlsx格式
 			</s:a>|
 		</div>
 	</div>

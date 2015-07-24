@@ -1,20 +1,26 @@
 package cn.codergege.training.dao.impl;
 
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.SQLException;
 import java.util.List;
 
 import javax.annotation.Resource;
 
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
+import org.hibernate.jdbc.Work;
 import org.springframework.stereotype.Repository;
 
 import cn.codergege.training.dao.CandidateDao;
 import cn.codergege.training.domain.Candidate;
+import cn.codergege.training.domain.Training;
 
 @Repository("candidateDao")
 public class CandidateDaoImpl implements CandidateDao {
 	@Resource
 	private SessionFactory sessionFactory;
+	private Session session;
 	private Session getSession(){
 		return sessionFactory.getCurrentSession();
 	}
@@ -74,6 +80,8 @@ public class CandidateDaoImpl implements CandidateDao {
 
 	@Override
 	public void update(Candidate candidate) {
+		//session = getSession();
+		//session.clear();
 		getSession().update(candidate);
 	}
 
@@ -97,5 +105,47 @@ public class CandidateDaoImpl implements CandidateDao {
 	public List<Candidate> getAll() {
 		String hql = "from Candidate";
 		return getSession().createQuery(hql).list();
+	}
+	@Override
+	public void merge(Candidate candidate) {
+		getSession().merge(candidate);
+	}
+	@Override
+	public void refresh(Candidate candidate) {
+		getSession().refresh(candidate);
+	}
+	public void setSession(Session session) {
+		this.session = session;
+	}
+	@Override
+	public void relUpdate(final Candidate candidate) {
+		getSession().doWork(new Work() {
+			@Override
+			public void execute(Connection conn) throws SQLException {
+				//先删除再插入
+				String sql = null;
+				PreparedStatement stmt = null;
+				sql = "delete from CANDIDATE_TRAINING where cid = ?";
+				stmt = conn.prepareStatement(sql);
+				stmt.setInt(1, candidate.getCid());
+				stmt.execute();
+				stmt.close();
+				
+				//再插入
+				sql = "insert into CANDIDATE_TRAINING(CID,TID) values(?, ?)";
+				conn.setAutoCommit(false);
+				stmt = conn.prepareStatement(sql);
+				int cid = candidate.getCid();
+				for(Training t: candidate.getTrainings()) {
+					stmt.setInt(1, cid);
+					stmt.setInt(2, t.getTid());
+					stmt.addBatch();
+				}
+				stmt.executeBatch();
+				conn.commit();
+				stmt.close();
+				//conn.close();
+			}
+		});
 	}
 }

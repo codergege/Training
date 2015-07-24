@@ -49,7 +49,9 @@ public class CandidateServiceImpl implements CandidateService {
 	public void rel(Candidate candidate, Integer tid) {
 		Training training = trainingDao.getTraining(tid);
 		candidate.getTrainings().add(training);
-		candidateDao.update(candidate);
+		//candidateDao.delete(candidate.getCid().toString());
+		//candidateDao.add(candidate);
+		candidateDao.relUpdate(candidate);
 	}
 	@Override
 	public Candidate getCandidate(String name) {

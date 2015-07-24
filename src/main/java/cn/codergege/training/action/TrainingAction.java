@@ -2,6 +2,9 @@ package cn.codergege.training.action;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.UnsupportedEncodingException;
@@ -21,11 +24,13 @@ import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.usermodel.Workbook;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
+import org.apache.struts2.interceptor.RequestAware;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Controller;
 
 import cn.codergege.training.domain.Candidate;
 import cn.codergege.training.domain.Training;
+import cn.codergege.training.service.CandidateService;
 import cn.codergege.training.service.TrainingService;
 
 import com.opensymphony.xwork2.ActionSupport;
@@ -34,10 +39,12 @@ import com.opensymphony.xwork2.Preparable;
 
 @Controller
 @Scope("prototype")
-public class TrainingAction extends ActionSupport implements ModelDriven<Training>, Preparable{
+public class TrainingAction extends ActionSupport implements ModelDriven<Training>, Preparable, RequestAware{
 
 	@Resource
 	private TrainingService trainingService;
+	@Resource
+	private CandidateService candidateService;
 	private Training training;
 	private Map<String, Object> dataMap;
 	private JSONObject resultObj;
@@ -61,7 +68,194 @@ public class TrainingAction extends ActionSupport implements ModelDriven<Trainin
 	private String format;
 	private String downloadFileName;
 	private InputStream excelFile;
+	private File importExcelFile;
+	private String importExcelFileFileName;
+	private Map<String, Object> request;
 	
+	// import training-candidate rel part
+	public void prepareImportRelExcel(){
+		training = trainingService.getTraining(tid);
+	}
+	public String importRelExcel() {
+		Integer totalCount = 0;
+		Integer successCount = 0;
+		Integer failCount = 0;
+		List<FailInfo> failInfos = new ArrayList<FailInfo>();
+		Workbook wb = null;
+		try {
+			wb = createWorkbook(new FileInputStream(importExcelFile));
+			Sheet sheet = wb.getSheetAt(0);
+			request.put("excelFileName", importExcelFileFileName);
+			request.put("excelSheetName", sheet.getSheetName());
+			totalCount = 0;
+			for(int i = 3; i <= sheet.getLastRowNum(); i ++){
+				Row row = sheet.getRow(i);
+				if(row == null ) break;
+				totalCount ++;
+				String candidateName = null; 
+				FailInfo fi = null;
+				if(row.getCell(0) == null) {
+					fi = new FailInfo();
+					fi.setName("");
+					fi.setInfo("第 " + (i + 1) + " 行 " + "excel 中姓名列存在空的单元格");
+				} else {
+					candidateName = row.getCell(0) == null ? "": row.getCell(0).getStringCellValue();
+					// 从数据库中找出姓名是 candidateName 的 candidate
+					// 如果 c Null 就返回 fi 
+					Candidate c = candidateService.getCandidate(candidateName);
+					if(c == null) {
+						fi = new FailInfo();
+						fi.setName(c.getName());
+						fi.setInfo("第 " + (i + 1) + " 行 " + c.getName() + " 该学员不存在, 请先添加学员信息" );
+					}else {
+						fi = rel2db(c, i, training);
+					}
+				}
+				// 如果 fi == null 则 successCount ++;
+				if(fi == null){
+					successCount ++;
+				} else {
+					failCount ++;
+					failInfos.add(fi);
+				}
+			}
+			request.put("totalCount", totalCount);
+			request.put("successCount", successCount);
+			request.put("failCount", failCount);
+			request.put("failInfos", failInfos);
+		} catch (FileNotFoundException e) {
+			e.printStackTrace();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+		return "importRelExcel";
+	}
+	private FailInfo rel2db(Candidate c, int i, Training t) {
+		FailInfo fi = null;
+		String rowInfo = "第 " + (i + 1) + " 行 ";
+		//判断 c 是否在 t.candidates 中
+		List<String> exists = new ArrayList<String>();
+		for(Candidate can: t.getCandidates()) {
+			exists.add(can.getName());
+		}
+		
+		if(exists.contains(c.getName())){
+			//如果是, new FailInfo, 返回
+			fi = new FailInfo();
+			fi.setName(c.getName());
+			fi.setInfo(rowInfo + c.getName() + "已经与项目关联" );
+			return fi;
+		}
+		//如果不是, training.candidates add 这个 c
+		// 然后 dowork 的方式去关联 
+		// 如果无异常, 返回 Null
+		// 如果有异常, 返回 new  FailInfo
+		t.getCandidates().add(c);
+		try {
+			trainingService.rel(t);
+		} catch (Exception e) {
+			e.printStackTrace();
+			fi = new FailInfo();
+			fi.setName(c.getName());
+			fi.setInfo(rowInfo + "关联出错, 出错信息: " + e.getMessage());
+		}
+		return null;
+	}
+		//import excel part
+		private Workbook createWorkbook(InputStream is) throws IOException{
+			if(importExcelFileFileName.toLowerCase().endsWith("xls")){
+				return new HSSFWorkbook(is);
+			}
+			if(importExcelFileFileName.toLowerCase().endsWith("xlsx")){
+				return new XSSFWorkbook(is);
+			}
+			return null;
+		}
+		public String importExcel(){
+			Integer totalCount = 0;
+			Integer successCount = 0;
+			Integer failCount = 0;
+			List<FailInfo> failInfos = new ArrayList<FailInfo>();
+			Workbook wb = null;
+			try {
+				wb = createWorkbook(new FileInputStream(importExcelFile));
+				Sheet sheet = wb.getSheetAt(0);
+				request.put("excelFileName", importExcelFileFileName);
+				request.put("excelSheetName", sheet.getSheetName());
+				totalCount = 0;
+				for(int i = 1; i <= sheet.getLastRowNum(); i ++){
+					Row row = sheet.getRow(i);
+					if(row == null ) break;
+					totalCount ++;
+					Training t = new Training();
+					t.setName(row.getCell(0) == null ? "": row.getCell(0).getStringCellValue());
+					t.setContent(row.getCell(1) == null ? "": row.getCell(1).getStringCellValue());
+					t.setLevel(row.getCell(2) == null ? "": row.getCell(2).getStringCellValue());
+					t.setTrainingTime(row.getCell(3) == null ? "": row.getCell(3).getStringCellValue());
+					t.setLocation(row.getCell(4) == null ? "": row.getCell(4).getStringCellValue());
+					t.setCreditHour(row.getCell(5) == null ? 0: row.getCell(5).getNumericCellValue());
+					t.setTrainingLx(row.getCell(6) == null ? "": row.getCell(6).getStringCellValue());
+					t.setTrainingOrg(row.getCell(7) == null ? "": row.getCell(7).getStringCellValue());
+					t.setCredit(row.getCell(8) == null ? 0: row.getCell(8).getNumericCellValue());
+					FailInfo fi = null;
+					if(row.getCell(0) == null) {
+						fi = new FailInfo();
+						fi.setName("");
+						fi.setInfo("第 " + (i + 1) + " 行" + "excel 中 [ 培训班次名称 ] 列存在空的单元格");
+					} else if(row.getCell(5) == null) {
+						fi = new FailInfo();
+						fi.setName("");
+						fi.setInfo("第 " + (i + 1) + " 行" + "excel 中 [ 培训学时 ] 列存在空的单元格");
+					}  else if(row.getCell(8) == null) {
+						fi = new FailInfo();
+						fi.setName("");
+						fi.setInfo("第 " + (i + 1) + " 行" + "excel 中 [ 学分 ] 列存在空的单元格");
+					} else {
+						fi = insert2db(t, i);
+					}
+					// 如果 fi == null 则 successCount ++;
+					if(fi == null){
+						successCount ++;
+					} else {
+						failCount ++;
+						failInfos.add(fi);
+					}
+				}
+				request.put("totalCount", totalCount);
+				request.put("successCount", successCount);
+				request.put("failCount", failCount);
+				request.put("failInfos", failInfos);
+			} catch (FileNotFoundException e) {
+				e.printStackTrace();
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+			return "importExcel";
+		}
+
+		private FailInfo insert2db(Training t, int i) {
+			FailInfo fi = null;
+			String rowinfo = "第 " + (i + 1) + " 行: ";
+			Training tmpt = trainingService.getTraining(t.getName());
+			// 如果学员已经存在, 则直接返回 failInfo
+			if (tmpt != null) {
+				fi = new FailInfo();
+				fi.setName(t.getName());
+				fi.setInfo(rowinfo + "培训项目名称已经存在");
+				return fi;
+			}
+			try {
+				//保存项目
+				trainingService.add(t);
+			} catch (Exception e) {
+				//如果出现异常, 返回 failInfo
+				fi = new FailInfo();
+				fi.setName(t.getName());
+				fi.setInfo(rowinfo + e.getMessage());
+				return fi;
+			}
+			return null;
+		}
 	//export excel candidate rel info
 			public String relExport(){
 				Workbook workbook = null;
@@ -468,5 +662,21 @@ public class TrainingAction extends ActionSupport implements ModelDriven<Trainin
 	}
 	public void setExcelFile(InputStream excelFile) {
 		this.excelFile = excelFile;
+	}
+	public File getImportExcelFile() {
+		return importExcelFile;
+	}
+	public void setImportExcelFile(File importExcelFile) {
+		this.importExcelFile = importExcelFile;
+	}
+	public String getImportExcelFileFileName() {
+		return importExcelFileFileName;
+	}
+	public void setImportExcelFileFileName(String importExcelFileFileName) {
+		this.importExcelFileFileName = importExcelFileFileName;
+	}
+	@Override
+	public void setRequest(Map<String, Object> request) {
+		this.request = request;
 	}
 }

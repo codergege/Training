@@ -49,4 +49,13 @@ public class TrainingServiceImpl implements TrainingService {
 		return trainingDao.getAll();
 	}
 
+	@Override
+	public Training getTraining(String name) {
+		return trainingDao.getTraining(name);
+	}
+
+	@Override
+	public void rel(Training t) {
+		trainingDao.rel(t);
+	}
 }

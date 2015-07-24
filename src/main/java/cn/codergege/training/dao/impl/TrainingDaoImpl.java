@@ -1,14 +1,19 @@
 package cn.codergege.training.dao.impl;
 
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.SQLException;
 import java.util.List;
 
 import javax.annotation.Resource;
 
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
+import org.hibernate.jdbc.Work;
 import org.springframework.stereotype.Repository;
 
 import cn.codergege.training.dao.TrainingDao;
+import cn.codergege.training.domain.Candidate;
 import cn.codergege.training.domain.Training;
 
 @Repository("trainingDao")
@@ -89,5 +94,37 @@ public class TrainingDaoImpl implements TrainingDao {
 	public List<Training> getAll() {
 		String hql = "from Training";
 		return getSession().createQuery(hql).list();
+	}
+	@Override
+	public Training getTraining(String name) {
+		String hql = "from Training where name like '" + name +"'";
+		return (Training) getSession().createQuery(hql).uniqueResult();
+	}
+	@Override
+	public void rel(final Training t) {
+		getSession().doWork(new Work(){
+			@Override
+			public void execute(Connection conn) throws SQLException {
+				PreparedStatement stmt = null;
+				int tid = t.getTid();
+				//先删除这个 t 的关联
+				String sql = "delete from CANDIDATE_TRAINING where tid = ?";
+				stmt = conn.prepareStatement(sql);
+				stmt.setInt(1, tid);
+				stmt.execute();
+				//再批量插入 t 的关联
+				sql = "insert into CANDIDATE_TRAINING(CID,TID) values(?, ?)";
+				conn.setAutoCommit(false);
+				stmt = conn.prepareStatement(sql);
+				for(Candidate c: t.getCandidates()){
+					stmt.setInt(1, c.getCid());
+					stmt.setInt(2, tid);
+					stmt.addBatch();
+				}
+				stmt.executeBatch();
+				conn.commit();
+				stmt.close();
+			}
+		});
 	}
 }

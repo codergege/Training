@@ -383,7 +383,23 @@
 	}
 	/* training crud end */
 	/* excel part */
-	
+	function importCandidate() {
+		window.open(getRootPath() + "/candidate-importui");
+	}
+	function importTraining() {
+		window.open(getRootPath() + "/training-importui");
+	}
+	function importTrainingRel() {
+		var row = $('#dgTraining').datagrid('getSelected');
+		var url = getRootPath() + "/training-rel-importui";
+		if(row == null) {
+			alert("请选择培训项目！");
+		}
+		if (row){
+			url += "?tid=" + row.tid + "&name=" + row.name;
+			window.open(url);
+		}
+	}
 </script>
 </head>
 <body class="easyui-layout">
@@ -432,16 +448,18 @@
 			<a href="#" class="easyui-linkbutton" data-options="iconCls:'icon-add',plain:true" onclick="addCandidate()"style="margin-left: 20px;">增加</a> 
 			<a href="#" class="easyui-linkbutton" data-options="iconCls:'icon-edit',plain:true" onclick="editCandidate()">修改</a>
 			<a href="#" class="easyui-linkbutton" data-options="iconCls:'icon-edit',plain:true" onclick="relCandidateTraining()">关联</a>
+			<span style="border: 1px solid #388">
 			|导出学员信息 |
 			<s:a action="candidate-export" >
 				<s:param name="format">xls</s:param> 
-				xls格式(适用excel 2003 及之前版本)
+				xls格式
 			</s:a>|
 			<s:a action="candidate-export" >
 				<s:param name="format">xlsx</s:param> 
-				xlsx格式(适用excel 2007 及之后版本)
+				xlsx格式
 			</s:a>|
-			<a href="#" class="easyui-linkbutton" data-options="iconCls:'icon-delete',plain:true" onclick="excelInput()">学员导入</a>
+			</span>
+			<a href="#" class="easyui-linkbutton" data-options="iconCls:'icon-add',plain:true" onclick="importCandidate()" >导入学员信息</a> 
 			<a href="#" class="easyui-linkbutton" data-options="iconCls:'icon-remove',plain:true" onclick="deleteCandidate()" style="float: right;">删除</a> 
 		</div>
 	</div>
@@ -513,15 +531,17 @@
 			<a href="#" class="easyui-linkbutton" data-options="iconCls:'icon-add',plain:true" onclick="addTraining()" style="margin-left: 20px;">增加</a> 
 			<a href="#" class="easyui-linkbutton" data-options="iconCls:'icon-edit',plain:true" onclick="editTraining()">修改</a>
 			<a href="#" class="easyui-linkbutton" data-options="iconCls:'icon-edit',plain:true" onclick="relTrainingCandidate()">关联</a>
-			|导出学员信息 |
+			|导出培训信息 |
 			<s:a action="training-export" >
 				<s:param name="format">xls</s:param> 
-				xls格式(适用excel 2003 及之前版本)
+				xls格式
 			</s:a>|
 			<s:a action="training-export" >
 				<s:param name="format">xlsx</s:param> 
-				xlsx格式(适用excel 2007 及之后版本)
+				xlsx格式
 			</s:a>|
+			<a href="#" class="easyui-linkbutton" data-options="iconCls:'icon-add',plain:true" onclick="importTraining()" >导入培训信息</a> 
+			<a href="#" class="easyui-linkbutton" data-options="iconCls:'icon-add',plain:true" onclick="importTrainingRel()" >导入培训-学员关联信息</a> 
 			<a href="#" class="easyui-linkbutton" data-options="iconCls:'icon-remove',plain:true" onclick="deleteTraining()" style="float: right">删除</a> 
 		</div>
 	</div>

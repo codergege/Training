@@ -20,4 +20,7 @@ public interface TrainingService {
 
 	List<Training> getAll();
 
+	Training getTraining(String name);
+
+	void rel(Training t);
 }
